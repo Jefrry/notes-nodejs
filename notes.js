@@ -9,8 +9,8 @@ switch (command) {
     case 'list':
         list((error, notes) => {
             if (error) return console.error(error.message);
-
             if (notes.length === 0) return console.log('Заметок пока нет');
+
             notes.forEach((note, index) => {
                 console.log(`${index + 1}. ${note.title}`);
             });
@@ -19,13 +19,7 @@ switch (command) {
     case 'view':
         view(title, (error, note) => {
             if (error) return console.error(error.message);
-
-            console.log(`# ${note.title}\r\n\r\n---\r\n\r\n${note.content}`);
-        });
-        break;
-    case 'viewByIndex':
-        viewByIndex(index, (error, note) => {
-            if (error) return console.error(error.message);
+            if (!note) return console.log('Заметка не найдена');
 
             console.log(`# ${note.title}\r\n\r\n---\r\n\r\n${note.content}`);
         });
@@ -41,13 +35,6 @@ switch (command) {
         remove(title, error => {
             if (error) return console.error(error.message);
             
-            console.log('Заметка удалена');
-        });
-        break;
-    case 'removeByIndex':
-        removeByIndex(index, error => {
-            if (error) return console.error(error.message);
-
             console.log('Заметка удалена');
         });
         break;
@@ -70,20 +57,14 @@ function view(title, done) {
     load((error, notes) => {
         if (error) return done(error);
 
-        const note = notes.find(note => note.title === title);
-
-        if (!note) return done(new Error('Заметка не найдена'));
-        
-        done(null, note);
-    })
-}
-function viewByIndex(index, done) {
-    load((error, notes) => {
-        if (error) return done(error);
-
-        if (!note) return done(new Error('Заметка не найдена'));
-        
-        done(null, notes[index - 1]);
+        let index = parseFloat(title);
+        if (isNaN(index)) {
+            let note = notes.find(note => note.title === title);
+            done(null, note);
+        }else{
+            let note = notes[index - 1];
+            done(null, note);
+        }
     })
 }
 function create(title, content, done) {
@@ -98,15 +79,12 @@ function remove(title, done) {
     load((error, notes) => {
         if (error) return done(error);
 
-        notes = notes.filter(note => note.title !== title);
-        save(notes, done);
-    })
-}
-function removeByIndex(index, done) {
-    load((error, notes) => {
-        if (error) return done(error);
-
-        notes.splice(index - 1, index);
+        let index = parseFloat(title);
+        if (isNaN(index)) {
+            notes = notes.filter(note => note.title !== title);
+        }else{
+            notes.splice(index - 1, index);
+        }
         save(notes, done);
     })
 }
